@@ -1,0 +1,21 @@
+#ifndef CHIP8RESISTORS_H
+#define CHIP8RESISTORS_H
+
+#include "config.h"
+
+
+struct chip8_resistors
+{
+    unsigned char V[CHIP8_TOTAL_DATA_RESISTORS];
+    unsigned short I;
+    unsigned char delay_timer;
+    unsigned char sound_timer;
+    unsigned short PC;
+    unsigned char SP;
+
+};
+
+
+
+
+#endif

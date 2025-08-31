@@ -8,4 +8,7 @@
 #define CHIP8_WINDOWS_MULTIPLIER 10
 
 
+#define CHIP8_TOTAL_DATA_RESISTORS 16
+
+
 #endif 

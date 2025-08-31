@@ -6,6 +6,7 @@
 int main(int argc, char const** argv){
 
     struct chip8 chip8;
+    chip8.resistors.V[0x0f] = 50;
     chip8_memory_set(&chip8.memory, 0x400, 'Z');
     printf("%c\n", chip8_memory_get(&chip8.memory, 50));
 

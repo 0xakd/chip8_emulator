@@ -3,9 +3,11 @@
 
 #include "config.h"
 #include "chip8memory.h"
+#include "chip8resistors.h"
 
 struct chip8{
     struct chip8_memory memory;
+    struct chip8_resistors resistors;
 };
 
 #endif 
