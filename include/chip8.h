@@ -1,11 +1,11 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef CHIP8_H
+#define CHIP8_H
 
-#define EMULATOR_WINDOWS_TITLE "Chip8 Emulator"
-#define CHIP8_MEMORY_SIZE 4096
-#define CHIP8_WIDTH 64
-#define CHIP8_HEIGHT 32
-#define CHIP8_WINDOWS_MULTIPLIER 10
+#include "config.h"
+#include "chip8memory.h"
 
+struct chip8{
+    struct chip8_memory memory;
+};
 
 #endif 
