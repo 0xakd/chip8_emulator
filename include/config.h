@@ -9,6 +9,6 @@
 
 
 #define CHIP8_TOTAL_DATA_RESISTORS 16
-
+#define CHIP8_TOTAL_STACK_DEPTH 16
 
 #endif 
