@@ -11,6 +11,6 @@ struct chip8_stack
 };
 
 void chip8_stack_push(struct chip8* chip8, unsigned short val);
-void chip8_stack_pop(struct chip8* chip8);
+unsigned short chip8_stack_pop(struct chip8* chip8);
 
 #endif
