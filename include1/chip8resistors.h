@@ -6,7 +6,7 @@
 
 struct chip8_resistors
 {
-    unsigned char V[CHIP8_TOTAL_DATA_RESISTORS];
+    unsigned char V[CHIP8_TOTAL_DATA_REGISTERS];
     unsigned short I;
     unsigned char delay_timer;
     unsigned char sound_timer;

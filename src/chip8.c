@@ -20,7 +20,8 @@ const char chip8_default_character_set[] = {
     0xf0, 0x80, 0xf0, 0x80, 0x80
 };
 
-void chip8_init(struct chip8* chip8){
-    memset(chip8, 0, sizeof(chip8));
+void chip8_init(struct chip8* chip8)
+{
+    memset(chip8, 0, sizeof(struct chip8));
     memcpy(&chip8->memory.memory, chip8_default_character_set, sizeof(chip8_default_character_set));
-}  
+}
