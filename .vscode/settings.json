@@ -2,6 +2,8 @@
     "files.associations": {
         "chip8.h": "c",
         "config.h": "c",
-        "chip8stack.h": "c"
+        "chip8stack.h": "c",
+        "chip8registers.h": "c",
+        "chip8screen.h": "c"
     }
 }
