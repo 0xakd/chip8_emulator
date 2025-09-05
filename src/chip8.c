@@ -2,6 +2,8 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
 
 const char chip8_default_character_set[] = {
     0xf0, 0x90, 0x90, 0x90, 0xf0,
@@ -85,7 +87,12 @@ static void chip8_exec_extended_eight(struct chip8* chip8, unsigned opcode){
 
         case 0x07:
             chip8->registers.V[0x0f] = chip8->registers.V[y] > chip8->registers.V[x];
-            
+            chip8->registers.V[x] = chip8->registers.V[y] - chip8->registers.V[x];
+            break;
+
+        case 0x0E:
+            chip8->registers.V[0xff] = chip8->registers.V[x] & 0x10000000;
+            chip8->registers.V[x] = chip8->registers.V[x] * 2;
             break;
 
         default:
@@ -102,6 +109,7 @@ static void chip8_exec_extended(struct chip8* chip8, unsigned short opcode){
     unsigned char x = (opcode >> 8) & 0x000f;
     unsigned char y = (opcode >> 4) & 0x000f;
     unsigned char kk = opcode & 0x00ff;
+    unsigned char n = opcode & 0x000f;
     switch (opcode & 0xf000)
     {
 
@@ -150,7 +158,48 @@ static void chip8_exec_extended(struct chip8* chip8, unsigned short opcode){
         case 0x8000:
             chip8_exec_extended_eight(chip8, opcode);
             break;
-       
+
+        case 0x9000:
+            if (chip8->registers.V[x] != chip8->registers.V[y]){
+                chip8->registers.PC += 2;
+            }
+            break;
+
+        case 0xA000:
+            chip8->registers.I = nnn;
+            break;
+
+        case 0xB000:
+            chip8->registers.PC = nnn + chip8->registers.V[0x00];
+            break;
+
+        case 0xC000:
+            srand(clock());
+            chip8->registers.V[x] = (rand() % 255) & kk;
+            break;
+
+        case 0xD000:
+            const char* sprite = chip8->memory.memory[chip8->registers.I];
+            chip8_screen_draw_sprite(&chip8->screen, chip8->registers.V[x], chip8->registers.V[y], sprite, n);
+            break;
+
+        case 0xE000:{
+                switch (opcode & 0x00ff){
+                    case 0x9e:
+                        if (chip8_keyboard_is_down(&chip8->keyboard, chip8->registers.V[x]))
+                        {
+                            chip8->registers.PC += 2;
+                        }
+                        
+                        break;
+                    
+                    default:
+                        break;
+                }
+            }
+
+            break;
+
     }
 
 
