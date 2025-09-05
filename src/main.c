@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <windows.h>
 #include <stdbool.h>
 #include "SDL2/SDL.h"
 #include "chip8.h"
@@ -14,6 +15,7 @@ int main(int argc, char **argv)
 
     struct chip8 chip8;
     chip8_init(&chip8);
+    chip8_load(&chip8, "Hello world", sizeof("Hello world"));
 
     chip8_screen_draw_sprite(&chip8.screen, 62, 30, &chip8.memory.memory[0x05], 5);
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -81,6 +83,16 @@ int main(int argc, char **argv)
         }
 
         SDL_RenderPresent(renderer);
+
+        if(chip8.registers.delay_timer > 0){
+            Sleep(100);
+            chip8.registers.delay_timer -= 1;
+        }
+
+        if(chip8.registers.sound_timer > 0){
+            Beep(15000, 100 * chip8.registers.sound_timer);
+            chip8.registers.sound_timer -= 0;
+        }
     }
 
 out:
