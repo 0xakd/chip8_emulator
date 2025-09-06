@@ -48,8 +48,8 @@ mingw32-make
 replace "INVADERS" with any other game you want.
 
 ## Controls 🎮
-1 2 3 4 → 1 2 3 4 <br>
-Q W E R → 5 6 7 8 <br>
-A S D F → 9 A B C <br>
-Z X C V → D E F 0
+1 2 3 4    →   1 2 3 4 <br>
+Q W E R    →   5 6 7 8 <br>
+A S D F    →   9 A B C <br>
+Z X C V    →   D E F 0
 
