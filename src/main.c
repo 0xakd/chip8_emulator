@@ -5,10 +5,31 @@
 #include "chip8.h"
 #include "chip8keyboard.h"
 
+// const char keyboard_map[CHIP8_TOTAL_KEYS] = {
+//     SDLK_0, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5,
+//     SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_a, SDLK_b,
+//     SDLK_c, SDLK_d, SDLK_e, SDLK_f};
+
+
 const char keyboard_map[CHIP8_TOTAL_KEYS] = {
-    SDLK_0, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5,
-    SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_a, SDLK_b,
-    SDLK_c, SDLK_d, SDLK_e, SDLK_f};
+    SDLK_x, // 0
+    SDLK_1, // 1
+    SDLK_2, // 2
+    SDLK_3, // 3
+    SDLK_q, // 4
+    SDLK_w, // 5
+    SDLK_e, // 6
+    SDLK_a, // 7
+    SDLK_s, // 8
+    SDLK_d, // 9
+    SDLK_z, // A
+    SDLK_c, // B
+    SDLK_4, // C
+    SDLK_r, // D
+    SDLK_f, // E
+    SDLK_v  // F
+};
+
 
 int main(int argc, char **argv)
 {
