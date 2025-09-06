@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <SDL2/SDL.h>
 
 const char chip8_default_character_set[] = {
     0xf0, 0x90, 0x90, 0x90, 0xf0,
@@ -20,25 +21,24 @@ const char chip8_default_character_set[] = {
     0xe0, 0x90, 0xe0, 0x90, 0xe0,
     0xf0, 0x80, 0x80, 0x80, 0xf0,
     0xe0, 0x90, 0x90, 0x90, 0xe0,
-    0xf0, 0x80, 0xf0, 0x80, 0xf0, 
-    0xf0, 0x80, 0xf0, 0x80, 0x80
-};
+    0xf0, 0x80, 0xf0, 0x80, 0xf0,
+    0xf0, 0x80, 0xf0, 0x80, 0x80};
 
-void chip8_init(struct chip8* chip8)
+void chip8_init(struct chip8 *chip8)
 {
     memset(chip8, 0, sizeof(struct chip8));
     memcpy(&chip8->memory.memory, chip8_default_character_set, sizeof(chip8_default_character_set));
 }
 
-
-void chip8_load(struct chip8* chip8, const char* buff, size_t size){
+void chip8_load(struct chip8 *chip8, const char *buff, size_t size)
+{
     assert(size + CHIP8_PROGRAM_LOAD_ADDRESS < CHIP8_MEMORY_SIZE);
     memcpy(&chip8->memory.memory[CHIP8_PROGRAM_LOAD_ADDRESS], buff, size);
     chip8->registers.PC = CHIP8_PROGRAM_LOAD_ADDRESS;
 }
 
-
-static void chip8_exec_extended_eight(struct chip8* chip8, unsigned opcode){
+static void chip8_exec_extended_eight(struct chip8 *chip8, unsigned opcode)
+{
     unsigned char x = (opcode >> 8) & 0x000f;
     unsigned char y = (opcode >> 4) & 0x000f;
     unsigned char final_four_bits = opcode & 0x000f;
@@ -46,65 +46,91 @@ static void chip8_exec_extended_eight(struct chip8* chip8, unsigned opcode){
 
     switch (final_four_bits)
     {
-        case 0x00:
-            chip8->registers.V[x] = chip8->registers.V[y];
-            break;
-        
-        case 0x01:
-            chip8->registers.V[x] = chip8->registers.V[x] | chip8->registers.V[y]; 
-            break;
-        
-        case 0x02:
-            chip8->registers.V[x] = chip8->registers.V[x] & chip8->registers.V[y]; 
-            break;
+    case 0x00:
+        chip8->registers.V[x] = chip8->registers.V[y];
+        break;
 
-        case 0x03:
-            chip8->registers.V[x] = chip8->registers.V[x] ^ chip8->registers.V[y]; 
-            break;
+    case 0x01:
+        chip8->registers.V[x] = chip8->registers.V[x] | chip8->registers.V[y];
+        break;
 
-        case 0x04:
-            tmp = chip8->registers.V[x] + chip8->registers.V[y]; 
-            chip8->registers.V[0x0f] = false;
-            if(tmp > 0xff){
-                chip8->registers.V[0x0f] = true;
-            }
-            break;
+    case 0x02:
+        chip8->registers.V[x] = chip8->registers.V[x] & chip8->registers.V[y];
+        break;
 
-        case 0x05:
-            chip8->registers.V[0x0f] = false;
-            if(chip8->registers.V[x] > chip8->registers.V[y]){
-                chip8->registers.V[0x0f] = true;
-            }
-            chip8->registers.V[x] = chip8->registers.V[x] - chip8->registers.V[y];
-            break;
-        
-        
-        case 0x06:
-            chip8->registers.V[0xff] = chip8->registers.V[x] & 0x01;
-            chip8->registers.V[x] = chip8->registers.V[x] / 2;
-            break;
+    case 0x03:
+        chip8->registers.V[x] = chip8->registers.V[x] ^ chip8->registers.V[y];
+        break;
 
+    case 0x04:
+        tmp = chip8->registers.V[x] + chip8->registers.V[y];
+        chip8->registers.V[0x0f] = false;
+        if (tmp > 0xff)
+        {
+            chip8->registers.V[0x0f] = true;
+        }
+        break;
 
-        case 0x07:
-            chip8->registers.V[0x0f] = chip8->registers.V[y] > chip8->registers.V[x];
-            chip8->registers.V[x] = chip8->registers.V[y] - chip8->registers.V[x];
-            break;
+    case 0x05:
+        chip8->registers.V[0x0f] = false;
+        if (chip8->registers.V[x] > chip8->registers.V[y])
+        {
+            chip8->registers.V[0x0f] = true;
+        }
+        chip8->registers.V[x] = chip8->registers.V[x] - chip8->registers.V[y];
+        break;
 
-        case 0x0E:
-            chip8->registers.V[0xff] = chip8->registers.V[x] & 0x10000000;
-            chip8->registers.V[x] = chip8->registers.V[x] * 2;
-            break;
+    case 0x06:
+        chip8->registers.V[0xff] = chip8->registers.V[x] & 0x01;
+        chip8->registers.V[x] = chip8->registers.V[x] / 2;
+        break;
 
-        default:
-            break;
+    case 0x07:
+        chip8->registers.V[0x0f] = chip8->registers.V[y] > chip8->registers.V[x];
+        chip8->registers.V[x] = chip8->registers.V[y] - chip8->registers.V[x];
+        break;
+
+    case 0x0E:
+        chip8->registers.V[0xff] = chip8->registers.V[x] & 0x10000000;
+        chip8->registers.V[x] = chip8->registers.V[x] * 2;
+        break;
+
+    default:
+        break;
     }
 }
 
 
-
-
-static void chip8_exec_extended(struct chip8* chip8, unsigned short opcode){
+static void chip8_wait_for_keypress(struct chip8* chip8){
+    SDL_Event event;
+    while (SDL_WaitEvent(&event)){
+        if (event.type != SDL_KEYDOWN){
+            continue;
+        }
+        char c = event.key.keysym.sym;
+    }
     
+}
+
+static void chip8_exec_extended_F(struct chip8 *chip8, unsigned opcode){
+    
+    unsigned char x = (opcode >> 8) & 0x000f;
+    switch (opcode & 0x00ff)
+    {
+    case 0x07:
+        chip8->registers.V[x] = chip8->registers.delay_timer;
+        break;
+    
+    case 0x08:
+        
+        break;
+    }
+}
+
+
+static void chip8_exec_extended(struct chip8 *chip8, unsigned short opcode)
+{
+
     unsigned short nnn = opcode & 0x0fff;
     unsigned char x = (opcode >> 8) & 0x000f;
     unsigned char y = (opcode >> 4) & 0x000f;
@@ -113,115 +139,121 @@ static void chip8_exec_extended(struct chip8* chip8, unsigned short opcode){
     switch (opcode & 0xf000)
     {
 
-        //JP addr, 1nnn Jump to location nnn's
-        case 0x1000:
-            chip8->registers.PC = nnn;
-            break;
+    // JP addr, 1nnn Jump to location nnn's
+    case 0x1000:
+        chip8->registers.PC = nnn;
+        break;
 
-        //CALL addr, 2nnn Call subroutine at location nnn
-        case 0x2000:
-            chip8_stack_push(&chip8, chip8->registers.PC);
-            chip8->registers.PC = nnn;
-            break;
-        
-        //SE Vx, byte 3xkk skip next instruction if Vx==kk
-        case 0x3000:
-            if(chip8->registers.V[x] == kk){
+    // CALL addr, 2nnn Call subroutine at location nnn
+    case 0x2000:
+        chip8_stack_push(&chip8, chip8->registers.PC);
+        chip8->registers.PC = nnn;
+        break;
+
+    // SE Vx, byte 3xkk skip next instruction if Vx==kk
+    case 0x3000:
+        if (chip8->registers.V[x] == kk)
+        {
+            chip8->registers.PC += 2;
+        }
+        break;
+
+    // SNE Vx, byte 3xkk skip next instruction if Vx!=kk
+    case 0x4000:
+        if (chip8->registers.V[x] != kk)
+        {
+            chip8->registers.PC += 2;
+        }
+        break;
+
+    case 0x5000:
+        if (chip8->registers.V[x] == chip8->registers.V[y])
+        {
+            chip8->registers.PC += 2;
+        }
+        break;
+
+    case 0x6000:
+        chip8->registers.V[x] = kk;
+        break;
+
+    case 0x7000:
+        chip8->registers.V[x] += kk;
+        break;
+
+    case 0x8000:
+        chip8_exec_extended_eight(chip8, opcode);
+        break;
+
+    case 0x9000:
+        if (chip8->registers.V[x] != chip8->registers.V[y])
+        {
+            chip8->registers.PC += 2;
+        }
+        break;
+
+    case 0xA000:
+        chip8->registers.I = nnn;
+        break;
+
+    case 0xB000:
+        chip8->registers.PC = nnn + chip8->registers.V[0x00];
+        break;
+
+    case 0xC000:
+        srand(clock());
+        chip8->registers.V[x] = (rand() % 255) & kk;
+        break;
+
+    case 0xD000:
+        const char *sprite = chip8->memory.memory[chip8->registers.I];
+        chip8_screen_draw_sprite(&chip8->screen, chip8->registers.V[x], chip8->registers.V[y], sprite, n);
+        break;
+
+    case 0xE000:
+    {
+        switch (opcode & 0x00ff)
+        {
+        case 0x9e:
+            if (chip8_keyboard_is_down(&chip8->keyboard, chip8->registers.V[x]))
+            {
                 chip8->registers.PC += 2;
             }
             break;
 
-        //SNE Vx, byte 3xkk skip next instruction if Vx!=kk
-        case 0x4000:
-            if(chip8->registers.V[x] != kk){
+        case 0xa1:
+            if (!chip8_keyboard_is_down(&chip8->keyboard, chip8->registers.V[x]))
+            {
                 chip8->registers.PC += 2;
             }
             break;
-
-
-        case 0x5000:
-            if(chip8->registers.V[x] == chip8->registers.V[y]){
-                chip8->registers.PC += 2;
-            }
-            break;
-
-        
-        case 0x6000:
-            chip8->registers.V[x] = kk;
-            break;
-
-
-        case 0x7000:
-            chip8->registers.V[x] += kk;
-            break;
-
-        case 0x8000:
-            chip8_exec_extended_eight(chip8, opcode);
-            break;
-
-        case 0x9000:
-            if (chip8->registers.V[x] != chip8->registers.V[y]){
-                chip8->registers.PC += 2;
-            }
-            break;
-
-        case 0xA000:
-            chip8->registers.I = nnn;
-            break;
-
-        case 0xB000:
-            chip8->registers.PC = nnn + chip8->registers.V[0x00];
-            break;
-
-        case 0xC000:
-            srand(clock());
-            chip8->registers.V[x] = (rand() % 255) & kk;
-            break;
-
-        case 0xD000:
-            const char* sprite = chip8->memory.memory[chip8->registers.I];
-            chip8_screen_draw_sprite(&chip8->screen, chip8->registers.V[x], chip8->registers.V[y], sprite, n);
-            break;
-
-        case 0xE000:{
-                switch (opcode & 0x00ff){
-                    case 0x9e:
-                        if (chip8_keyboard_is_down(&chip8->keyboard, chip8->registers.V[x]))
-                        {
-                            chip8->registers.PC += 2;
-                        }
-                        
-                        break;
-                    
-                    default:
-                        break;
-                }
-            }
-
-            break;
-
+        }
     }
+    break;
 
-
+    case 0xf000:
+        chip8_exec_extended_F(chip8, opcode);        
+        break;
+    }
 }
 
-void chip8_exec(struct chip8* chip8, unsigned short opcode){
-    switch (opcode){
+void chip8_exec(struct chip8 *chip8, unsigned short opcode)
+{
+    switch (opcode)
+    {
 
-        //CLs: Clears the Display
-        case 0x00E0:
-            chip8_screen_clear(&chip8->screen);
-            break;
-        
-        //RET: Return from subroutines 
-        case 0x00EE:
-            chip8->registers.PC = chip8_stack_pop(&chip8);    
-            break;
+    // CLs: Clears the Display
+    case 0x00E0:
+        chip8_screen_clear(&chip8->screen);
+        break;
 
+    // RET: Return from subroutines
+    case 0x00EE:
+        chip8->registers.PC = chip8_stack_pop(&chip8);
+        break;
 
-
-        default:
-            chip8_exec_extended(chip8, opcode);
-            break;
+    default:
+        chip8_exec_extended(chip8, opcode);
+        break;
     }
 }
