@@ -1,0 +1,13 @@
+list comprehension:
+1. Squares of numbers 1-5.
+2. Even numbers from a list.
+3. Uppercase all words.
+
+Dictionary comprehension:
+1. Numbers and there cubes.
+2. Filter marks greater than 80.
+3. word to length.
+
+Zip:
+1. Combine 2 lists into pairs.
+2. Make a dictionary from 2 lists.

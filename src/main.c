@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
 
         for (int x = 0; x < CHIP8_WIDTH; x++)
         {

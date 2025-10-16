@@ -45,9 +45,9 @@ mingw32-make
 ```
 ### run
 ```bash 
-./bin/main.exe ./bin/INVADERS 
+./bin/main.exe ./bin/snake.ch8 
 ```
-replace "INVADERS" with any other game you want.
+replace "snake.ch8" with any other game you want.
 
 ---
 
@@ -58,3 +58,6 @@ A S D F    →   9 A B C <br>
 Z X C V    →   D E F 0
 
 ---
+
+## Exit 
+Press the Cross button or 'ctrl+c' in the terminal to terminate the program.
